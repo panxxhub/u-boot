@@ -11,10 +11,11 @@
 	compatible = "alinx,zynq-ax7021", "xlnx,zynq-7000";
 
 	aliases {
-		// ethernet0 = &gem0;
+		ethernet0 = &gem0;
 		serial0 = &uart1;
-		// spi0 = &qspi;
-		// mmc0 = &sdhci0;
+		spi0 = &qspi;
+		mmc0 = &sdhci0;
+		mmc1 = &sdhci1;
 	};
 
 	memory@0 {
@@ -27,45 +28,60 @@
 		stdout-path = "serial0:115200n8";
 	};
 
-	// usb_phy0: phy0 {
-	// 	#phy-cells = <0>;
-	// 	compatible = "usb-nop-xceiv";
-	// 	reset-gpios = <&gpio0 46 1>;
-	// };
+	leds {
+		compatible = "gpio-leds";
+		led-ds23 {
+			label = "ds23";
+			gpios = <&gpio0 0 0>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	usb_phy0: phy0 {
+		#phy-cells = <0>;
+		compatible = "usb-nop-xceiv";
+		reset-gpios = <&gpio0 8 0>; // GPIO_ACTIVE_HIGH 0
+	};
 };
 
 &clkc {
-	ps-clk-frequency = <50000000>;
+	ps-clk-frequency = <33333333>;
 };
 
-// &gem0 {
-// 	status = "okay";
-// 	phy-mode = "rgmii-id";
-// 	phy-handle = <&ethernet_phy>;
+&gem0 {
+	status = "okay";
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethernet_phy>;
 
-// 	ethernet_phy: ethernet-phy@0 {
-// 		reg = <0>;
-// 		device_type = "ethernet-phy";
-// 	};
-// };
+	ethernet_phy: ethernet-phy@0 {
+		reg = <0>;
+		device_type = "ethernet-phy";
+		reset-gpios = <&gpio0 7 1>; // GPIO_ACTIVE_LOW 1
+	};
+};
 
-// &qspi {
-// 	bootph-all;
-// 	status = "okay";
-// };
+&qspi {
+	bootph-all;
+	status = "okay";
+};
 
-// &sdhci0 {
-// 	bootph-all;
-// 	status = "okay";
-// };
+&sdhci0 {
+	bootph-all;
+	status = "okay";
+};
+
+&sdhci1 {
+	bootph-all;
+	status = "okay";
+};
 
 &uart1 {
 	bootph-all;
 	status = "okay";
 };
 
-// &usb0 {
-// 	status = "okay";
-// 	dr_mode = "host";
-// 	usb-phy = <&usb_phy0>;
-// };
+&usb0 {
+	status = "okay";
+	dr_mode = "host";
+	usb-phy = <&usb_phy0>;
+};
