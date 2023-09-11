@@ -14,8 +14,8 @@
 		ethernet0 = &gem0;
 		serial0 = &uart1;
 		spi0 = &qspi;
-		mmc0 = &sdhci0;
 		mmc1 = &sdhci1;
+		mmc0 = &sdhci0;
 	};
 
 	memory@0 {
@@ -32,8 +32,8 @@
 		compatible = "gpio-leds";
 		led-ds23 {
 			label = "ds23";
-			gpios = <&gpio0 0 0>;
-			linux,default-trigger = "heartbeat";
+			gpios = <&gpio0 0 1>;
+			default-trigger = "heartbeat";
 		};
 	};
 
@@ -52,11 +52,10 @@
 	status = "okay";
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethernet_phy>;
-
 	ethernet_phy: ethernet-phy@0 {
-		reg = <0>;
-		device_type = "ethernet-phy";
-		reset-gpios = <&gpio0 7 1>; // GPIO_ACTIVE_LOW 1
+		// reg = <0>;
+		// device_type = "ethernet-phy";
+		// reset-gpios = <&gpio0 7 1>; // GPIO_ACTIVE_LOW 1
 	};
 };
 
@@ -70,10 +69,10 @@
 	status = "okay";
 };
 
-&sdhci1 {
-	bootph-all;
-	status = "okay";
-};
+// &sdhci1 {
+// 	bootph-all;
+// 	status = "okay";
+// };
 
 &uart1 {
 	bootph-all;
