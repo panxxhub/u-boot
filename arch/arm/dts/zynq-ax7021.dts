@@ -4,6 +4,7 @@
  *  Copyright (C) 2012 National Instruments Corp.
  */
 /dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
 #include "zynq-7000.dtsi"
 
 / {
@@ -32,9 +33,8 @@
 		compatible = "gpio-leds";
 		led-ds23 {
 			label = "ds23";
-			gpios = <&gpio0 0 1>;
-			default-state = "on";
-			default-trigger = "heartbeat";
+			gpios = <&gpio0 0 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "heartbeat";
 		};
 	};
 
@@ -71,10 +71,10 @@
 	status = "okay";
 };
 
-// &sdhci1 {
-	//         bootph-all;
-	//         status = "okay";
-// };
+&sdhci1 {
+	// bootph-all;
+	status = "okay";
+};
 
 &uart1 {
 	bootph-all;

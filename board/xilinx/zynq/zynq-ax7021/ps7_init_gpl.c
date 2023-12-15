@@ -16,7 +16,6 @@
  *
  *
  ******************************************************************************/
-
 /****************************************************************************/
 /**
  *
@@ -4005,6 +4004,38 @@ unsigned long ps7_post_config_3_0[] = {
     // ..
     EMIT_WRITE(0XF8000004, 0x0000767BU),
     // .. FINISH: LOCK IT BACK
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
+unsigned long ps7_debug_3_0[] = {
+    // START: top
+    // .. START: CROSS TRIGGER CONFIGURATIONS
+    // .. .. START: UNLOCKING CTI REGISTERS
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8898FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8898FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8899FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8899FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8809FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8809FB0, 0xC5ACCE55U),
+    // .. .. FINISH: UNLOCKING CTI REGISTERS
+    // .. .. START: ENABLING CTI MODULES AND CHANNELS
+    // .. .. FINISH: ENABLING CTI MODULES AND CHANNELS
+    // .. .. START: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. .. FINISH: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. FINISH: CROSS TRIGGER CONFIGURATIONS
     // FINISH: top
     //
     EMIT_EXIT(),
@@ -8149,6 +8180,38 @@ unsigned long ps7_post_config_2_0[] = {
     //
 };
 
+unsigned long ps7_debug_2_0[] = {
+    // START: top
+    // .. START: CROSS TRIGGER CONFIGURATIONS
+    // .. .. START: UNLOCKING CTI REGISTERS
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8898FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8898FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8899FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8899FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8809FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8809FB0, 0xC5ACCE55U),
+    // .. .. FINISH: UNLOCKING CTI REGISTERS
+    // .. .. START: ENABLING CTI MODULES AND CHANNELS
+    // .. .. FINISH: ENABLING CTI MODULES AND CHANNELS
+    // .. .. START: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. .. FINISH: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. FINISH: CROSS TRIGGER CONFIGURATIONS
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
 unsigned long ps7_pll_init_data_1_0[] = {
     // START: top
     // .. START: SLCR SETTINGS
@@ -12219,16 +12282,47 @@ unsigned long ps7_post_config_1_0[] = {
     //
 };
 
-// remap ocm 256 high
+unsigned long ps7_debug_1_0[] = {
+    // START: top
+    // .. START: CROSS TRIGGER CONFIGURATIONS
+    // .. .. START: UNLOCKING CTI REGISTERS
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8898FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8898FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8899FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8899FB0, 0xC5ACCE55U),
+    // .. .. KEY = 0XC5ACCE55
+    // .. .. ==> 0XF8809FB0[31:0] = 0xC5ACCE55U
+    // .. ..     ==> MASK : 0xFFFFFFFFU    VAL : 0xC5ACCE55U
+    // .. ..
+    EMIT_WRITE(0XF8809FB0, 0xC5ACCE55U),
+    // .. .. FINISH: UNLOCKING CTI REGISTERS
+    // .. .. START: ENABLING CTI MODULES AND CHANNELS
+    // .. .. FINISH: ENABLING CTI MODULES AND CHANNELS
+    // .. .. START: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. .. FINISH: MAPPING CPU0, CPU1 AND FTM EVENTS TO CTM CHANNELS
+    // .. FINISH: CROSS TRIGGER CONFIGURATIONS
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
+// remap ocm 192 low, 64 high(initial map)
 unsigned long ps7_ocm_init_data[] = {
     EMIT_WRITE(0XF8000008, 0x0000DF0DU),
+    // mask_write 0xF8000910 0x0000000F 0x00000008
+    EMIT_MASKWRITE(0XF8000910, 0x0000001F, 0x0000001F),
 
-    // mask_write 0xF8000910 0x0000000F 0x0000000F
-    EMIT_MASKWRITE(0XF8000910, 0x0000000F, 0x0000000F),
-
-    // mpcore.Filtering_Start_Address_Register = 0x0010_0000
-    // mask_write 0xF8F00040 0xFFFFFFFF 0x00100000
-    EMIT_MASKWRITE(0XF8F00040, 0xFFFFFFFF, 0x00100000),
+    // mpcore.Filtering_Start_Address_Register = 0x0000_0000
+    // mask_write 0xF8F00040 0xFFFFFFFF 0x00000000
+    EMIT_MASKWRITE(0XF8F00040, 0xFFFFFFFF, 0x00000000),
 
     // mpcore.Filtering_End_Address_Register = 0xFFE0_0000
     // mask_write 0xF8F00044 0xFFFFFFFF 0xFFE00000
@@ -12239,6 +12333,7 @@ unsigned long ps7_ocm_init_data[] = {
     EMIT_MASKWRITE(0XF8F00000, 0x00000002, 0x00000002),
 
     EMIT_WRITE(0XF8000004, 0x0000767BU),
+
     EMIT_EXIT(),
 
 };
@@ -12305,6 +12400,7 @@ int ps7_init(void) {
   if (ret != PS7_INIT_SUCCESS)
     return ret;
 
+  // OCM init
   ret = ps7_config(ps7_ocm_init_data);
   if (ret != PS7_INIT_SUCCESS)
     return ret;
