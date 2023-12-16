@@ -12314,30 +12314,6 @@ unsigned long ps7_debug_1_0[] = {
     //
 };
 
-// remap ocm 192 low, 64 high(initial map)
-unsigned long ps7_ocm_init_data[] = {
-    EMIT_WRITE(0XF8000008, 0x0000DF0DU),
-    // mask_write 0xF8000910 0x0000000F 0x00000008
-    EMIT_MASKWRITE(0XF8000910, 0x0000001F, 0x0000001F),
-
-    // mpcore.Filtering_Start_Address_Register = 0x0000_0000
-    // mask_write 0xF8F00040 0xFFFFFFFF 0x00000000
-    EMIT_MASKWRITE(0XF8F00040, 0xFFFFFFFF, 0x00000000),
-
-    // mpcore.Filtering_End_Address_Register = 0xFFE0_0000
-    // mask_write 0xF8F00044 0xFFFFFFFF 0xFFE00000
-    EMIT_MASKWRITE(0XF8F00044, 0xFFFFFFFF, 0xFFE00000),
-
-    // mpcore.SCU_CONTROL_REGISTER[Address_filtering_enable] = 1 // bit 1
-    // mask_write 0xF8F00000 0x00000002 0x00000002
-    EMIT_MASKWRITE(0XF8F00000, 0x00000002, 0x00000002),
-
-    EMIT_WRITE(0XF8000004, 0x0000767BU),
-
-    EMIT_EXIT(),
-
-};
-
 unsigned long *ps7_mio_init_data = ps7_mio_init_data_3_0;
 unsigned long *ps7_pll_init_data = ps7_pll_init_data_3_0;
 unsigned long *ps7_clock_init_data = ps7_clock_init_data_3_0;
@@ -12397,11 +12373,6 @@ int ps7_init(void) {
 
   // MIO init
   ret = ps7_config(ps7_mio_init_data);
-  if (ret != PS7_INIT_SUCCESS)
-    return ret;
-
-  // OCM init
-  ret = ps7_config(ps7_ocm_init_data);
   if (ret != PS7_INIT_SUCCESS)
     return ret;
 
