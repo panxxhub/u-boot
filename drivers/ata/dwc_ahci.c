@@ -8,7 +8,6 @@
  * Author: Mugunthan V N <mugunthanvnm@ti.com>
  */
 
-#include <common.h>
 #include <dm.h>
 #include <ahci.h>
 #include <scsi.h>
@@ -18,6 +17,7 @@
 #endif
 #include <asm/io.h>
 #include <generic-phy.h>
+#include <linux/printk.h>
 
 struct dwc_ahci_priv {
 	void *base;

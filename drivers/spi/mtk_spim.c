@@ -18,7 +18,6 @@
 #include <dm/devres.h>
 #include <dm/pinctrl.h>
 #include <linux/bitops.h>
-#include <linux/completion.h>
 #include <linux/dma-mapping.h>
 #include <linux/io.h>
 #include <linux/iopoll.h>
@@ -137,6 +136,8 @@ struct mtk_spim_capability {
  * @state:		Controller state
  * @sel_clk:		Pad clock
  * @spi_clk:		Core clock
+ * @parent_clk:		Parent clock (needed for mediatek,spi-ipm, upstream DTSI)
+ * @hclk:		HCLK clock (needed for mediatek,spi-ipm, upstream DTSI)
  * @pll_clk_rate:	Controller's PLL source clock rate, which is different
  *			from SPI bus clock rate
  * @xfer_len:		Current length of data for transfer
@@ -151,6 +152,7 @@ struct mtk_spim_priv {
 	void __iomem *base;
 	u32 state;
 	struct clk sel_clk, spi_clk;
+	struct clk parent_clk, hclk;
 	u32 pll_clk_rate;
 	u32 xfer_len;
 	struct mtk_spim_capability hw_cap;
@@ -357,6 +359,9 @@ static bool mtk_spim_supports_op(struct spi_slave *slave,
 	struct udevice *bus = dev_get_parent(slave->dev);
 	struct mtk_spim_priv *priv = dev_get_priv(bus);
 
+	if (!spi_mem_default_supports_op(slave, op))
+		return false;
+
 	if (op->cmd.buswidth == 0 || op->cmd.buswidth > 4 ||
 	    op->addr.buswidth > 4 || op->dummy.buswidth > 4 ||
 	    op->data.buswidth > 4)
@@ -409,7 +414,7 @@ static int mtk_spim_transfer_wait(struct spi_slave *slave,
 {
 	struct udevice *bus = dev_get_parent(slave->dev);
 	struct mtk_spim_priv *priv = dev_get_priv(bus);
-	u32 sck_l, sck_h, clk_count, reg;
+	u32 pll_clk, sck_l, sck_h, clk_count, reg;
 	ulong us = 1;
 	int ret = 0;
 
@@ -418,11 +423,12 @@ static int mtk_spim_transfer_wait(struct spi_slave *slave,
 	else
 		clk_count = op->data.nbytes;
 
+	pll_clk = priv->pll_clk_rate;
 	sck_l = readl(priv->base + SPI_CFG2_REG) >> SPI_CFG2_SCK_LOW_OFFSET;
 	sck_h = readl(priv->base + SPI_CFG2_REG) & SPI_CFG2_SCK_HIGH_MASK;
-	do_div(priv->pll_clk_rate, sck_l + sck_h + 2);
+	do_div(pll_clk, sck_l + sck_h + 2);
 
-	us = CLK_TO_US(priv->pll_clk_rate, clk_count * 8);
+	us = CLK_TO_US(pll_clk, clk_count * 8);
 	us += 1000 * 1000; /* 1s tolerance */
 
 	if (us > UINT_MAX)
@@ -645,11 +651,25 @@ static int mtk_spim_probe(struct udevice *dev)
 	struct mtk_spim_priv *priv = dev_get_priv(dev);
 	int ret;
 
-	priv->base = devfdt_get_addr_ptr(dev);
+	priv->base = dev_read_addr_ptr(dev);
 	if (!priv->base)
 		return -EINVAL;
 
-	mtk_spim_get_attr(priv, dev);
+	/*
+	 * Upstream linux driver for ipm design enable all the modes
+	 * and setup the calibrarion values directly in the driver with
+	 * standard values.
+	 */
+	if (device_is_compatible(dev, "mediatek,spi-ipm")) {
+		priv->hw_cap.enhance_timing = true;
+		priv->hw_cap.dma_ext = true;
+		priv->hw_cap.ipm_design = true;
+		priv->hw_cap.support_quad = true;
+		priv->sample_sel = 0;
+		priv->tick_dly = 2;
+	} else {
+		mtk_spim_get_attr(priv, dev);
+	}
 
 	ret = clk_get_by_name(dev, "sel-clk", &priv->sel_clk);
 	if (ret < 0) {
@@ -663,8 +683,31 @@ static int mtk_spim_probe(struct udevice *dev)
 		return ret;
 	}
 
-	clk_enable(&priv->sel_clk);
+	/*
+	 * Upstream DTSI use a different compatible that provide additional
+	 * clock instead of the assigned-clock implementation.
+	 */
+	if (device_is_compatible(dev, "mediatek,spi-ipm")) {
+		ret = clk_get_by_name(dev, "parent-clk", &priv->parent_clk);
+		if (ret < 0) {
+			dev_err(dev, "failed to get parent-clk\n");
+			return ret;
+		}
+
+		ret = clk_get_by_name(dev, "hclk", &priv->hclk);
+		if (ret < 0) {
+			dev_err(dev, "failed to get hclk\n");
+			return ret;
+		}
+
+		clk_enable(&priv->parent_clk);
+		clk_set_parent(&priv->sel_clk, &priv->parent_clk);
+
+		clk_enable(&priv->hclk);
+	}
+
 	clk_enable(&priv->spi_clk);
+	clk_enable(&priv->sel_clk);
 
 	priv->pll_clk_rate = clk_get_rate(&priv->spi_clk);
 	if (priv->pll_clk_rate == 0)
@@ -697,6 +740,7 @@ static const struct dm_spi_ops mtk_spim_ops = {
 
 static const struct udevice_id mtk_spim_ids[] = {
 	{ .compatible = "mediatek,ipm-spi" },
+	{ .compatible = "mediatek,spi-ipm", },
 	{}
 };
 

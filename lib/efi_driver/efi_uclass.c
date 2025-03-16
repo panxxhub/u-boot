@@ -17,7 +17,8 @@
  * controllers.
  */
 
-#include <common.h>
+#define LOG_CATEGORY LOGC_EFI
+
 #include <dm.h>
 #include <efi_driver.h>
 #include <log.h>

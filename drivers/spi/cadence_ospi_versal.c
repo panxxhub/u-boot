@@ -6,7 +6,6 @@
  */
 
 #include <clk.h>
-#include <common.h>
 #include <memalign.h>
 #include <wait_bit.h>
 #include <asm/io.h>
@@ -18,9 +17,6 @@
 #include "cadence_qspi.h"
 #include <dt-bindings/power/xlnx-versal-power.h>
 
-#define CMD_4BYTE_READ  0x13
-#define CMD_4BYTE_FAST_READ  0x0C
-
 int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 			      const struct spi_mem_op *op)
 {
@@ -28,6 +24,13 @@ int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 	u8 opcode, addr_bytes, *rxbuf, dummy_cycles;
 
 	n_rx = op->data.nbytes;
+
+	if (op->addr.dtr && (op->addr.val % 2)) {
+		n_rx += 1;
+		writel(op->addr.val & ~0x1,
+		       priv->regbase + CQSPI_REG_INDIRECTRDSTARTADDR);
+	}
+
 	rxbuf = op->data.buf.in;
 	rx_rem = n_rx % 4;
 	bytes_to_dma = n_rx - rx_rem;
@@ -44,8 +47,10 @@ int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 		       priv->regbase + CQSPI_REG_INDIR_TRIG_ADDR_RANGE);
 		writel(CQSPI_DFLT_DMA_PERIPH_CFG,
 		       priv->regbase + CQSPI_REG_DMA_PERIPH_CFG);
-		writel((unsigned long)rxbuf, priv->regbase +
+		writel(lower_32_bits((unsigned long)rxbuf), priv->regbase +
 		       CQSPI_DMA_DST_ADDR_REG);
+		writel(upper_32_bits((unsigned long)rxbuf), priv->regbase +
+		       CQSPI_DMA_DST_ADDR_MSB_REG);
 		writel(priv->trigger_address, priv->regbase +
 		       CQSPI_DMA_SRC_RD_ADDR_REG);
 		writel(bytes_to_dma, priv->regbase +
@@ -106,6 +111,11 @@ int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 		memcpy(rxbuf, &data, rx_rem);
 	}
 
+	if (op->addr.dtr && (op->addr.val % 2)) {
+		rxbuf -= bytes_to_dma;
+		memcpy(rxbuf, rxbuf + 1, n_rx - 1);
+	}
+
 	return 0;
 }
 
@@ -127,49 +137,8 @@ int cadence_qspi_apb_wait_for_dma_cmplt(struct cadence_spi_priv *priv)
 	return 0;
 }
 
-#if defined(CONFIG_DM_GPIO)
-int cadence_qspi_versal_flash_reset(struct udevice *dev)
-{
-	struct gpio_desc gpio;
-	u32 reset_gpio;
-	int ret;
-
-	/* request gpio and set direction as output set to 1 */
-	ret = gpio_request_by_name(dev, "reset-gpios", 0, &gpio,
-				   GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
-	if (ret) {
-		printf("%s: unable to reset ospi flash device", __func__);
-		return ret;
-	}
-
-	reset_gpio = PMIO_NODE_ID_BASE + gpio.offset;
-
-	/* Request for pin */
-	xilinx_pm_request(PM_PINCTRL_REQUEST, reset_gpio, 0, 0, 0, NULL);
-
-	/* Enable hysteresis in cmos receiver */
-	xilinx_pm_request(PM_PINCTRL_CONFIG_PARAM_SET, reset_gpio,
-			  PM_PINCTRL_CONFIG_SCHMITT_CMOS,
-			  PM_PINCTRL_INPUT_TYPE_SCHMITT, 0, NULL);
-
-	/* Disable Tri-state */
-	xilinx_pm_request(PM_PINCTRL_CONFIG_PARAM_SET, reset_gpio,
-			  PM_PINCTRL_CONFIG_TRI_STATE,
-			  PM_PINCTRL_TRI_STATE_DISABLE, 0, NULL);
-	udelay(1);
-
-	/* Set value 0 to pin */
-	dm_gpio_set_value(&gpio, 0);
-	udelay(1);
-
-	/* Set value 1 to pin */
-	dm_gpio_set_value(&gpio, 1);
-	udelay(1);
-
-	return 0;
-}
-#else
-int cadence_qspi_versal_flash_reset(struct udevice *dev)
+#if !CONFIG_IS_ENABLED(DM_GPIO)
+int cadence_qspi_flash_reset(struct udevice *dev)
 {
 	/* CRP WPROT */
 	writel(0, WPROT_CRP);

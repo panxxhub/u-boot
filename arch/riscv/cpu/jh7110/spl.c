@@ -3,7 +3,6 @@
  * Copyright (C) 2022 StarFive Technology Co., Ltd.
  * Author: Yanhong Wang<yanhong.wang@starfivetech.com>
  */
-#include <common.h>
 #include <asm/arch/eeprom.h>
 #include <asm/csr.h>
 #include <asm/sections.h>
@@ -29,7 +28,7 @@ static bool check_ddr_size(phys_size_t size)
 	}
 }
 
-int spl_soc_init(void)
+int spl_dram_init(void)
 {
 	int ret;
 	struct udevice *dev;

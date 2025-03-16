@@ -5,7 +5,8 @@
  * From coreboot src/soc/intel/broadwell/romstage/raminit.c
  */
 
-#include <common.h>
+#define LOG_CATEGORY UCLASS_RAM
+
 #include <dm.h>
 #include <init.h>
 #include <log.h>

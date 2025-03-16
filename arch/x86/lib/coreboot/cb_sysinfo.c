@@ -6,12 +6,12 @@
  * Copyright (C) 2009 coresystems GmbH
  */
 
-#include <common.h>
 #include <asm/cb_sysinfo.h>
 #include <init.h>
 #include <mapmem.h>
 #include <net.h>
 #include <asm/global_data.h>
+#include <linux/errno.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -471,6 +471,7 @@ int get_coreboot_info(struct sysinfo_t *info)
 		return -ENOENT;
 	gd->arch.coreboot_table = addr;
 	gd_set_acpi_start(map_to_sysmem(info->rsdp));
+	gd_set_smbios_start(info->smbios_start);
 	gd->flags |= GD_FLG_SKIP_LL_INIT;
 
 	return 0;

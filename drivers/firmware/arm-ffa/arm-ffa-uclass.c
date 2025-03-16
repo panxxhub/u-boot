@@ -5,14 +5,13 @@
  * Authors:
  *   Abdellatif El Khlifi <abdellatif.elkhlifi@arm.com>
  */
-#include <common.h>
 #include <arm_ffa.h>
 #include <arm_ffa_priv.h>
 #include <dm.h>
 #include <log.h>
 #include <malloc.h>
 #include <string.h>
-#include <uuid.h>
+#include <u-boot/uuid.h>
 #include <asm/global_data.h>
 #include <dm/device-internal.h>
 #include <dm/devres.h>
@@ -144,8 +143,6 @@ static int ffa_print_error_log(u32 ffa_id, int ffa_errno)
 		return -EINVAL;
 
 	abi_idx = FFA_ID_TO_ERRMAP_ID(ffa_id);
-	if (abi_idx < 0 || abi_idx >= FFA_ERRMAP_COUNT)
-		return -EINVAL;
 
 	if (!err_msg_map[abi_idx].err_str[err_idx])
 		return -EINVAL;

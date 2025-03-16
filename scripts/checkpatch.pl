@@ -2606,8 +2606,8 @@ sub u_boot_line {
 		     "Possible new uclass - make sure to add a sandbox driver, plus a test in test/dm/<name>.c\n" . $herecurr);
 	}
 
-	# try to get people to use the livetree API
-	if ($line =~ /^\+.*fdtdec_/) {
+	# try to get people to use the livetree API, except when changing tooling
+	if ($line =~ /^\+.*fdtdec_/ && $realfile !~ /^tools\//) {
 		WARN("LIVETREE",
 		     "Use the livetree API (dev_read_...)\n" . $herecurr);
 	}
@@ -2636,10 +2636,16 @@ sub u_boot_line {
 		      "All CONFIG symbols are managed by Kconfig\n" . $herecurr);
 	}
 
-	# Don't put common.h and dm.h in header files
-	if ($realfile =~ /\.h$/ && $rawline =~ /^\+#include\s*<(common|dm)\.h>*/) {
+	# Don't put dm.h in header files
+	if ($realfile =~ /\.h$/ && $rawline =~ /^\+#include\s*<dm\.h>*/) {
 		ERROR("BARRED_INCLUDE_IN_HDR",
 		      "Avoid including common.h and dm.h in header files\n" . $herecurr);
+	}
+
+	# Don't add common.h to files
+	if ($rawline =~ /^\+#include\s*<common\.h>*/) {
+		ERROR("BARRED_INCLUDE_COMMON_H",
+		      "Do not add common.h to files\n" . $herecurr);
 	}
 
 	# Do not disable fdt / initrd relocation
@@ -7199,8 +7205,8 @@ sub process {
 
 # check for IS_ENABLED() without CONFIG_<FOO> ($rawline for comments too)
 		if ($rawline =~ /\bIS_ENABLED\s*\(\s*(\w+)\s*\)/ && $1 !~ /^${CONFIG_}/) {
-			WARN("IS_ENABLED_CONFIG",
-			     "IS_ENABLED($1) is normally used as IS_ENABLED(${CONFIG_}$1)\n" . $herecurr);
+			ERROR("IS_ENABLED_CONFIG",
+			     "IS_ENABLED($1) must be used as IS_ENABLED(${CONFIG_}$1)\n" . $herecurr);
 		}
 
 # check for #if defined CONFIG_<FOO> || defined CONFIG_<FOO>_MODULE

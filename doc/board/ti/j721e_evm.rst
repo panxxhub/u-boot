@@ -27,7 +27,7 @@ specific processing cores and peripherals:
         * 2 x C66x Digital signal processor sub system
         * C71x Digital signal processor sub-system with MMA.
 
-More info can be found in TRM: http://www.ti.com/lit/pdf/spruil1
+More info can be found in TRM: https://www.ti.com/lit/pdf/spruil1
 
 Platform information:
 
@@ -48,50 +48,54 @@ support. Below is the pictorial representation of boot flow:
 Sources:
 --------
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_boot_sources
     :end-before: .. k3_rst_include_end_boot_sources
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_boot_firmwares
+    :end-before: .. k3_rst_include_end_boot_firmwares
 
 Build procedure:
 ----------------
 0. Setup the environment variables:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_common_env_vars_desc
     :end-before: .. k3_rst_include_end_common_env_vars_desc
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_board_env_vars_desc
     :end-before: .. k3_rst_include_end_board_env_vars_desc
 
 Set the variables corresponding to this platform:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_common_env_vars_defn
     :end-before: .. k3_rst_include_end_common_env_vars_defn
-.. code-block:: bash
+.. prompt:: bash $
 
- $ export UBOOT_CFG_CORTEXR=j721e_evm_r5_defconfig
- $ export UBOOT_CFG_CORTEXA=j721e_evm_a72_defconfig
- $ export TFA_BOARD=generic
- $ # we dont use any extra TFA parameters
- $ unset TFA_EXTRA_ARGS
- $ export OPTEE_PLATFORM=k3-j721e
- $ # we dont use any extra OP-TEE parameters
- $ unset OPTEE_EXTRA_ARGS
+ export UBOOT_CFG_CORTEXR=j721e_evm_r5_defconfig
+ export UBOOT_CFG_CORTEXA=j721e_evm_a72_defconfig
+ export TFA_BOARD=generic
+ # we dont use any extra TFA parameters
+ unset TFA_EXTRA_ARGS
+ export OPTEE_PLATFORM=k3-j721e
+ # we dont use any extra OP-TEE parameters
+ unset OPTEE_EXTRA_ARGS
 
 .. j721e_evm_rst_include_start_build_steps
 
 1. Trusted Firmware-A:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_build_steps_tfa
     :end-before: .. k3_rst_include_end_build_steps_tfa
 
 
 2. OP-TEE:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_build_steps_optee
     :end-before: .. k3_rst_include_end_build_steps_optee
 
@@ -99,19 +103,20 @@ Set the variables corresponding to this platform:
 
 * 3.1 R5:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_build_steps_spl_r5
     :end-before: .. k3_rst_include_end_build_steps_spl_r5
 
 * 3.2 A72:
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_build_steps_uboot
     :end-before: .. k3_rst_include_end_build_steps_uboot
 .. j721e_evm_rst_include_end_build_steps
 
 Target Images
---------------
+-------------
+
 In order to boot we need tiboot3.bin, sysfw.itb, tispl.bin and u-boot.img.
 Each SoC variant (GP, HS-FS and HS-SE) requires a different source for these
 files.
@@ -148,6 +153,33 @@ Image formats:
 
 .. image:: img/sysfw.itb.svg
   :alt: sysfw.itb image format
+
+OSPI:
+-----
+ROM supports booting from OSPI from offset 0x0.
+
+Flashing images to OSPI:
+
+Below commands can be used to download tiboot3.bin, tispl.bin, u-boot.img,
+and sysfw.itb over tftp and then flash those to OSPI at their respective
+addresses.
+
+.. prompt:: bash =>
+
+  sf probe
+  tftp ${loadaddr} tiboot3.bin
+  sf update $loadaddr 0x0 $filesize
+  tftp ${loadaddr} tispl.bin
+  sf update $loadaddr 0x80000 $filesize
+  tftp ${loadaddr} u-boot.img
+  sf update $loadaddr 0x280000 $filesize
+  tftp ${loadaddr} sysfw.itb
+  sf update $loadaddr 0x6C0000 $filesize
+
+Flash layout for OSPI:
+
+.. image:: img/ospi_sysfw.svg
+  :alt: OSPI flash partition layout
 
 R5 Memory Map:
 --------------
@@ -192,35 +224,8 @@ R5 Memory Map:
      - 0x41cffbfc
      - 0x41cfffff
 
-OSPI:
------
-ROM supports booting from OSPI from offset 0x0.
-
-Flashing images to OSPI:
-
-Below commands can be used to download tiboot3.bin, tispl.bin, u-boot.img,
-and sysfw.itb over tftp and then flash those to OSPI at their respective
-addresses.
-
-.. code-block:: text
-
- => sf probe
- => tftp ${loadaddr} tiboot3.bin
- => sf update $loadaddr 0x0 $filesize
- => tftp ${loadaddr} tispl.bin
- => sf update $loadaddr 0x80000 $filesize
- => tftp ${loadaddr} u-boot.img
- => sf update $loadaddr 0x280000 $filesize
- => tftp ${loadaddr} sysfw.itb
- => sf update $loadaddr 0x6C0000 $filesize
-
-Flash layout for OSPI:
-
-.. image:: img/ospi_sysfw.svg
-  :alt: OSPI flash partition layout
-
-Firmwares:
-----------
+Firmware:
+---------
 
 The J721e u-boot allows firmware to be loaded for the Cortex-R5 subsystem.
 The CPSW5G in J7200 and CPSW9G in J721E present in MAIN domain is configured
@@ -248,12 +253,12 @@ detailed setup information.
   environment's distribution needs to be updated, it might be necessary to
   build OpenOCD from the source.
 
-.. include::  k3.rst
+.. include::  ../ti/k3.rst
     :start-after: .. k3_rst_include_start_openocd_connect_XDS110
     :end-before: .. k3_rst_include_end_openocd_connect_XDS110
 
 To start OpenOCD and connect to the board
 
-.. code-block:: bash
+.. prompt:: bash $
 
   openocd -f board/ti_j721eevm.cfg

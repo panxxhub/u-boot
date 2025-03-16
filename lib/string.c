@@ -15,13 +15,14 @@
  *    reentrant and should be faster). Use only strsep() in new code, please.
  */
 
+#include <asm/sections.h>
 #include <config.h>
+#include <limits.h>
 #include <linux/compiler.h>
-#include <linux/types.h>
-#include <linux/string.h>
 #include <linux/ctype.h>
+#include <linux/string.h>
+#include <linux/types.h>
 #include <malloc.h>
-
 
 /**
  * strncasecmp - Case insensitive, length-limited string comparison
@@ -116,20 +117,18 @@ char * strncpy(char * dest,const char *src,size_t count)
  * of course, the buffer size is zero). It does not pad
  * out the result like strncpy() does.
  *
- * Return: the number of bytes copied
+ * Return: strlen(src)
  */
 size_t strlcpy(char *dest, const char *src, size_t size)
 {
-	if (size) {
-		size_t srclen = strlen(src);
-		size_t len = (srclen >= size) ? size - 1 : srclen;
+	size_t ret = strlen(src);
 
+	if (size) {
+		size_t len = (ret >= size) ? size - 1 : ret;
 		memcpy(dest, src, len);
 		dest[len] = '\0';
-		return len + 1;
 	}
-
-	return 0;
+	return ret;
 }
 #endif
 
@@ -191,6 +190,8 @@ char * strncat(char *dest, const char *src, size_t count)
  * Compatible with *BSD: the result is always a valid NUL-terminated string that
  * fits in the buffer (unless, of course, the buffer size is zero). It does not
  * write past @size like strncat() does.
+ *
+ * Return: min(strlen(dest), size) + strlen(src)
  */
 size_t strlcat(char *dest, const char *src, size_t size)
 {
@@ -560,7 +561,7 @@ __used void * memset(void * s,int c,size_t count)
  * You should not use this function to access IO space, use memcpy_toio()
  * or memcpy_fromio() instead.
  */
-__used void * memcpy(void *dest, const void *src, size_t count)
+__rcode __used void *memcpy(void *dest, const void *src, size_t count)
 {
 	unsigned long *dl = (unsigned long *)dest, *sl = (unsigned long *)src;
 	char *d8, *s8;
@@ -594,7 +595,7 @@ __used void * memcpy(void *dest, const void *src, size_t count)
  *
  * Unlike memcpy(), memmove() copes with overlapping areas.
  */
-__used void * memmove(void * dest,const void *src,size_t count)
+__rcode __used void *memmove(void *dest, const void *src, size_t count)
 {
 	char *tmp, *s;
 
@@ -679,27 +680,45 @@ char *memdup(const void *src, size_t len)
 	return p;
 }
 
+#ifndef __HAVE_ARCH_STRNSTR
+/**
+ * strnstr() - find the first substring occurrence in a NUL terminated string
+ *
+ * @s1:		string to be searched
+ * @s2:		string to search for
+ * @len:	maximum number of characters in s2 to consider
+ *
+ * Return:	pointer to the first occurrence or NULL
+ */
+char *strnstr(const char *s1, const char *s2, size_t len)
+{
+	size_t l1, l2;
+
+	l1 = strnlen(s1, len);
+	l2 = strlen(s2);
+
+	for (; l1 >= l2; --l1, ++s1) {
+		if (!memcmp(s1, s2, l2))
+			return (char *) s1;
+	}
+
+	return NULL;
+}
+#endif
+
 #ifndef __HAVE_ARCH_STRSTR
 /**
- * strstr - Find the first substring in a %NUL terminated string
- * @s1: The string to be searched
- * @s2: The string to search for
+ * strstr() - find the first substring occurrence in a NUL terminated string
+ *
+ * @s1:		string to be searched
+ * @s2:		string to search for
+ * @len:	maximum number of characters in s2 to consider
+ *
+ * Return:	pointer to the first occurrence or NULL
  */
-char * strstr(const char * s1,const char * s2)
+char *strstr(const char *s1, const char *s2)
 {
-	int l1, l2;
-
-	l2 = strlen(s2);
-	if (!l2)
-		return (char *) s1;
-	l1 = strlen(s1);
-	while (l1 >= l2) {
-		l1--;
-		if (!memcmp(s1,s2,l2))
-			return (char *) s1;
-		s1++;
-	}
-	return NULL;
+	return strnstr(s1, s2, SIZE_MAX);
 }
 #endif
 

@@ -5,7 +5,8 @@
  * Copyright (c) 2016 Alexander Graf
  */
 
-#include <common.h>
+#define LOG_CATEGORY LOGC_EFI
+
 #include <bootm.h>
 #include <div64.h>
 #include <dm/device.h>
@@ -90,6 +91,9 @@ const efi_guid_t efi_guid_event_group_ready_to_boot =
 /* event group ResetSystem() invoked (before ExitBootServices) */
 const efi_guid_t efi_guid_event_group_reset_system =
 			EFI_EVENT_GROUP_RESET_SYSTEM;
+/* event group return to efibootmgr */
+const efi_guid_t efi_guid_event_group_return_to_efibootmgr =
+			EFI_EVENT_GROUP_RETURN_TO_EFIBOOTMGR;
 /* GUIDs of the Load File and Load File2 protocols */
 const efi_guid_t efi_guid_load_file_protocol = EFI_LOAD_FILE_PROTOCOL_GUID;
 const efi_guid_t efi_guid_load_file2_protocol = EFI_LOAD_FILE2_PROTOCOL_GUID;
@@ -712,7 +716,7 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
 			      void (EFIAPI *notify_function) (
 					struct efi_event *event,
 					void *context),
-			      void *notify_context, efi_guid_t *group,
+			      void *notify_context, const efi_guid_t *group,
 			      struct efi_event **event)
 {
 	struct efi_event *evt;
@@ -790,7 +794,7 @@ efi_status_t EFIAPI efi_create_event_ex(uint32_t type, efi_uintn_t notify_tpl,
 							struct efi_event *event,
 							void *context),
 					void *notify_context,
-					efi_guid_t *event_group,
+					const efi_guid_t *event_group,
 					struct efi_event **event)
 {
 	efi_status_t ret;
@@ -1339,7 +1343,7 @@ static efi_status_t efi_disconnect_all_drivers
 				 const efi_guid_t *protocol,
 				 efi_handle_t child_handle)
 {
-	efi_uintn_t number_of_drivers, tmp;
+	efi_uintn_t number_of_drivers;
 	efi_handle_t *driver_handle_buffer;
 	efi_status_t r, ret;
 
@@ -1350,27 +1354,13 @@ static efi_status_t efi_disconnect_all_drivers
 	if (!number_of_drivers)
 		return EFI_SUCCESS;
 
-	tmp = number_of_drivers;
 	while (number_of_drivers) {
-		ret = EFI_CALL(efi_disconnect_controller(
+		r = EFI_CALL(efi_disconnect_controller(
 				handle,
 				driver_handle_buffer[--number_of_drivers],
 				child_handle));
-		if (ret != EFI_SUCCESS)
-			goto reconnect;
-	}
-
-	free(driver_handle_buffer);
-	return ret;
-
-reconnect:
-	/* Reconnect all disconnected drivers */
-	for (; number_of_drivers < tmp; number_of_drivers++) {
-		r = EFI_CALL(efi_connect_controller(handle,
-						    &driver_handle_buffer[number_of_drivers],
-						    NULL, true));
 		if (r != EFI_SUCCESS)
-			EFI_PRINT("Failed to reconnect controller\n");
+			ret = r;
 	}
 
 	free(driver_handle_buffer);
@@ -1409,6 +1399,13 @@ static efi_status_t efi_uninstall_protocol
 	r = efi_disconnect_all_drivers(handle, protocol, NULL);
 	if (r != EFI_SUCCESS) {
 		r = EFI_ACCESS_DENIED;
+		/*
+		 * This will reconnect all controllers of the handle, even ones
+		 * that were not connected before. This can be done better
+		 * but we are following the EDKII implementation on this for
+		 * now
+		 */
+		EFI_CALL(efi_connect_controller(handle, NULL, NULL, true));
 		goto out;
 	}
 	/* Close protocol */
@@ -1821,7 +1818,7 @@ efi_status_t efi_setup_loaded_image(struct efi_device_path *device_path,
 	if (device_path) {
 		info->device_handle = efi_dp_find_obj(device_path, NULL, NULL);
 
-		dp = efi_dp_append(device_path, file_path);
+		dp = efi_dp_concat(device_path, file_path, 0);
 		if (!dp) {
 			ret = EFI_OUT_OF_RESOURCES;
 			goto failure;
@@ -2001,7 +1998,6 @@ error:
  * @size:		size of the loaded image
  * Return:		status code
  */
-static
 efi_status_t efi_load_image_from_path(bool boot_policy,
 				      struct efi_device_path *file_path,
 				      void **buffer, efi_uintn_t *size)
@@ -2240,7 +2236,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
 		if (IS_ENABLED(CONFIG_USB_DEVICE))
 			udc_disconnect();
 		board_quiesce_devices();
-		dm_remove_devices_flags(DM_REMOVE_ACTIVE_ALL);
+		dm_remove_devices_active();
 	}
 
 	/* Patch out unsupported runtime function */
@@ -2515,16 +2511,12 @@ static efi_status_t EFIAPI efi_protocols_per_handle(
 		return EFI_EXIT(EFI_INVALID_PARAMETER);
 
 	*protocol_buffer = NULL;
-	*protocol_buffer_count = 0;
 
 	efiobj = efi_search_obj(handle);
 	if (!efiobj)
 		return EFI_EXIT(EFI_INVALID_PARAMETER);
 
-	/* Count protocols */
-	list_for_each(protocol_handle, &efiobj->protocols) {
-		++*protocol_buffer_count;
-	}
+	*protocol_buffer_count = list_count_nodes(&efiobj->protocols);
 
 	/* Copy GUIDs */
 	if (*protocol_buffer_count) {
@@ -3266,11 +3258,10 @@ efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
 		 * To get ready to call EFI_EXIT below we have to execute the
 		 * missed out steps of EFI_CALL.
 		 */
-		assert(__efi_entry_check());
-		EFI_PRINT("%lu returned by started image\n",
-			  (unsigned long)((uintptr_t)exit_status &
-			  ~EFI_ERROR_MASK));
+		EFI_RETURN(exit_status);
+
 		current_image = parent_image;
+
 		return EFI_EXIT(exit_status);
 	}
 
@@ -3505,10 +3496,9 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
 	if (IS_ENABLED(CONFIG_EFI_TCG2_PROTOCOL)) {
 		if (image_obj->image_type == IMAGE_SUBSYSTEM_EFI_APPLICATION) {
 			ret = efi_tcg2_measure_efi_app_exit();
-			if (ret != EFI_SUCCESS) {
-				log_warning("tcg2 measurement fails(0x%lx)\n",
-					    ret);
-			}
+			if (ret != EFI_SUCCESS)
+				log_debug("tcg2 measurement fails (0x%lx)\n",
+					  ret);
 		}
 	}
 
@@ -3743,7 +3733,7 @@ out:
  *
  * Return: status code
  */
-static efi_status_t EFIAPI efi_reinstall_protocol_interface(
+efi_status_t EFIAPI efi_reinstall_protocol_interface(
 			efi_handle_t handle, const efi_guid_t *protocol,
 			void *old_interface, void *new_interface)
 {

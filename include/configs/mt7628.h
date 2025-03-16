@@ -13,7 +13,7 @@
 #define CFG_SYS_INIT_SP_OFFSET		0x80000
 
 /* Serial SPL */
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_SERIAL)
+#if defined(CONFIG_XPL_BUILD) && defined(CONFIG_SPL_SERIAL)
 #define CFG_SYS_NS16550_CLK		40000000
 #define CFG_SYS_NS16550_COM1		0xb0000c00
 #endif
@@ -21,9 +21,6 @@
 /* Serial common */
 #define CFG_SYS_BAUDRATE_TABLE		{ 9600, 19200, 38400, 57600, 115200, \
 					  230400, 460800, 921600 }
-
-/* SPL */
-#define CFG_SYS_UBOOT_START		CONFIG_TEXT_BASE
 
 /* Dummy value */
 #define CFG_SYS_UBOOT_BASE		0
