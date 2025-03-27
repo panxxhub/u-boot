@@ -531,20 +531,20 @@ unsigned long ps7_ddr_init_data_3_0[] = {
     // .. .. reg_ddrc_powerdown_to_x32 = 0x6
     // .. .. ==> 0XF8006018[9:5] = 0x00000006U
     // .. ..     ==> MASK : 0x000003E0U    VAL : 0x000000C0U
-    // .. .. reg_ddrc_t_faw = 0x16
-    // .. .. ==> 0XF8006018[15:10] = 0x00000016U
-    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00005800U
+    // .. .. reg_ddrc_t_faw = 0x19
+    // .. .. ==> 0XF8006018[15:10] = 0x00000019U
+    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00006400U
     // .. .. reg_ddrc_t_ras_max = 0x24
     // .. .. ==> 0XF8006018[21:16] = 0x00000024U
     // .. ..     ==> MASK : 0x003F0000U    VAL : 0x00240000U
-    // .. .. reg_ddrc_t_ras_min = 0x13
-    // .. .. ==> 0XF8006018[26:22] = 0x00000013U
-    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x04C00000U
+    // .. .. reg_ddrc_t_ras_min = 0x14
+    // .. .. ==> 0XF8006018[26:22] = 0x00000014U
+    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x05000000U
     // .. .. reg_ddrc_t_cke = 0x4
     // .. .. ==> 0XF8006018[31:28] = 0x00000004U
     // .. ..     ==> MASK : 0xF0000000U    VAL : 0x40000000U
     // .. .. 
-    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x44E458D3U),
+    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x452464D3U),
     // .. .. reg_ddrc_write_latency = 0x5
     // .. .. ==> 0XF800601C[4:0] = 0x00000005U
     // .. ..     ==> MASK : 0x0000001FU    VAL : 0x00000005U
@@ -3719,9 +3719,7 @@ unsigned long ps7_peripherals_init_data_3_0[] = {
     // .. .. START: NOR CS1 BASE ADDRESS
     // .. .. FINISH: NOR CS1 BASE ADDRESS
     // .. .. START: USB RESET
-    // .. .. FINISH: USB RESET
-    // .. .. START: ENET RESET
-    // .. .. .. START: ENET0 RESET
+    // .. .. .. START: USB0 RESET
     // .. .. .. .. START: DIR MODE BANK 0
     // .. .. .. .. DIRECTION_0 = 0x400
     // .. .. .. .. ==> 0XE000A204[31:0] = 0x00000400U
@@ -3792,7 +3790,9 @@ unsigned long ps7_peripherals_init_data_3_0[] = {
     // .. .. .. .. FINISH: MASK_DATA_1_LSW HIGH BANK [47:32]
     // .. .. .. .. START: MASK_DATA_1_MSW HIGH BANK [53:48]
     // .. .. .. .. FINISH: MASK_DATA_1_MSW HIGH BANK [53:48]
-    // .. .. .. FINISH: ENET0 RESET
+    // .. .. .. FINISH: USB0 RESET
+    // .. .. FINISH: USB RESET
+    // .. .. START: ENET RESET
     // .. .. FINISH: ENET RESET
     // .. .. START: I2C RESET
     // .. .. FINISH: I2C RESET
@@ -4480,20 +4480,20 @@ unsigned long ps7_ddr_init_data_2_0[] = {
     // .. .. reg_ddrc_powerdown_to_x32 = 0x6
     // .. .. ==> 0XF8006018[9:5] = 0x00000006U
     // .. ..     ==> MASK : 0x000003E0U    VAL : 0x000000C0U
-    // .. .. reg_ddrc_t_faw = 0x16
-    // .. .. ==> 0XF8006018[15:10] = 0x00000016U
-    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00005800U
+    // .. .. reg_ddrc_t_faw = 0x19
+    // .. .. ==> 0XF8006018[15:10] = 0x00000019U
+    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00006400U
     // .. .. reg_ddrc_t_ras_max = 0x24
     // .. .. ==> 0XF8006018[21:16] = 0x00000024U
     // .. ..     ==> MASK : 0x003F0000U    VAL : 0x00240000U
-    // .. .. reg_ddrc_t_ras_min = 0x13
-    // .. .. ==> 0XF8006018[26:22] = 0x00000013U
-    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x04C00000U
+    // .. .. reg_ddrc_t_ras_min = 0x14
+    // .. .. ==> 0XF8006018[26:22] = 0x00000014U
+    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x05000000U
     // .. .. reg_ddrc_t_cke = 0x4
     // .. .. ==> 0XF8006018[31:28] = 0x00000004U
     // .. ..     ==> MASK : 0xF0000000U    VAL : 0x40000000U
     // .. .. 
-    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x44E458D3U),
+    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x452464D3U),
     // .. .. reg_ddrc_write_latency = 0x5
     // .. .. ==> 0XF800601C[4:0] = 0x00000005U
     // .. ..     ==> MASK : 0x0000001FU    VAL : 0x00000005U
@@ -7814,9 +7814,7 @@ unsigned long ps7_peripherals_init_data_2_0[] = {
     // .. .. START: NOR CS1 BASE ADDRESS
     // .. .. FINISH: NOR CS1 BASE ADDRESS
     // .. .. START: USB RESET
-    // .. .. FINISH: USB RESET
-    // .. .. START: ENET RESET
-    // .. .. .. START: ENET0 RESET
+    // .. .. .. START: USB0 RESET
     // .. .. .. .. START: DIR MODE BANK 0
     // .. .. .. .. DIRECTION_0 = 0x400
     // .. .. .. .. ==> 0XE000A204[31:0] = 0x00000400U
@@ -7887,7 +7885,9 @@ unsigned long ps7_peripherals_init_data_2_0[] = {
     // .. .. .. .. FINISH: MASK_DATA_1_LSW HIGH BANK [47:32]
     // .. .. .. .. START: MASK_DATA_1_MSW HIGH BANK [53:48]
     // .. .. .. .. FINISH: MASK_DATA_1_MSW HIGH BANK [53:48]
-    // .. .. .. FINISH: ENET0 RESET
+    // .. .. .. FINISH: USB0 RESET
+    // .. .. FINISH: USB RESET
+    // .. .. START: ENET RESET
     // .. .. FINISH: ENET RESET
     // .. .. START: I2C RESET
     // .. .. FINISH: I2C RESET
@@ -8567,20 +8567,20 @@ unsigned long ps7_ddr_init_data_1_0[] = {
     // .. .. reg_ddrc_powerdown_to_x32 = 0x6
     // .. .. ==> 0XF8006018[9:5] = 0x00000006U
     // .. ..     ==> MASK : 0x000003E0U    VAL : 0x000000C0U
-    // .. .. reg_ddrc_t_faw = 0x16
-    // .. .. ==> 0XF8006018[15:10] = 0x00000016U
-    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00005800U
+    // .. .. reg_ddrc_t_faw = 0x19
+    // .. .. ==> 0XF8006018[15:10] = 0x00000019U
+    // .. ..     ==> MASK : 0x0000FC00U    VAL : 0x00006400U
     // .. .. reg_ddrc_t_ras_max = 0x24
     // .. .. ==> 0XF8006018[21:16] = 0x00000024U
     // .. ..     ==> MASK : 0x003F0000U    VAL : 0x00240000U
-    // .. .. reg_ddrc_t_ras_min = 0x13
-    // .. .. ==> 0XF8006018[26:22] = 0x00000013U
-    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x04C00000U
+    // .. .. reg_ddrc_t_ras_min = 0x14
+    // .. .. ==> 0XF8006018[26:22] = 0x00000014U
+    // .. ..     ==> MASK : 0x07C00000U    VAL : 0x05000000U
     // .. .. reg_ddrc_t_cke = 0x4
     // .. .. ==> 0XF8006018[31:28] = 0x00000004U
     // .. ..     ==> MASK : 0xF0000000U    VAL : 0x40000000U
     // .. .. 
-    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x44E458D3U),
+    EMIT_MASKWRITE(0XF8006018, 0xF7FFFFFFU ,0x452464D3U),
     // .. .. reg_ddrc_write_latency = 0x5
     // .. .. ==> 0XF800601C[4:0] = 0x00000005U
     // .. ..     ==> MASK : 0x0000001FU    VAL : 0x00000005U
@@ -11834,9 +11834,7 @@ unsigned long ps7_peripherals_init_data_1_0[] = {
     // .. .. START: NOR CS1 BASE ADDRESS
     // .. .. FINISH: NOR CS1 BASE ADDRESS
     // .. .. START: USB RESET
-    // .. .. FINISH: USB RESET
-    // .. .. START: ENET RESET
-    // .. .. .. START: ENET0 RESET
+    // .. .. .. START: USB0 RESET
     // .. .. .. .. START: DIR MODE BANK 0
     // .. .. .. .. DIRECTION_0 = 0x400
     // .. .. .. .. ==> 0XE000A204[31:0] = 0x00000400U
@@ -11907,7 +11905,9 @@ unsigned long ps7_peripherals_init_data_1_0[] = {
     // .. .. .. .. FINISH: MASK_DATA_1_LSW HIGH BANK [47:32]
     // .. .. .. .. START: MASK_DATA_1_MSW HIGH BANK [53:48]
     // .. .. .. .. FINISH: MASK_DATA_1_MSW HIGH BANK [53:48]
-    // .. .. .. FINISH: ENET0 RESET
+    // .. .. .. FINISH: USB0 RESET
+    // .. .. FINISH: USB RESET
+    // .. .. START: ENET RESET
     // .. .. FINISH: ENET RESET
     // .. .. START: I2C RESET
     // .. .. FINISH: I2C RESET
