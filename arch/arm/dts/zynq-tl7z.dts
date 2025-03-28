@@ -32,15 +32,17 @@
 		compatible = "gpio-leds";
 		led-ds23 {
 			label = "ds23";
-			gpios = <&gpio0 0 1>;
+			gpios = <&gpio0 9 1>;
 			default-trigger = "heartbeat";
 		};
 	};
 
+
+
 	usb_phy0: phy0 {
 		#phy-cells = <0>;
 		compatible = "usb-nop-xceiv";
-		reset-gpios = <&gpio0 8 0>; // GPIO_ACTIVE_HIGH 0
+		reset-gpios = <&gpio0 10 0>; // GPIO_ACTIVE_HIGH 0
 	};
 };
 
@@ -53,9 +55,9 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethernet_phy>;
 	ethernet_phy: ethernet-phy@0 {
-		// reg = <0>;
-		// device_type = "ethernet-phy";
-		// reset-gpios = <&gpio0 7 1>; // GPIO_ACTIVE_LOW 1
+		reg = <0>;
+		device_type = "ethernet-phy";
+		reset-gpios = <&gpio0 10 0>; // GPIO_ACTIVE_LOW 1
 	};
 };
 
