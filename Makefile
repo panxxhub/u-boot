@@ -3,7 +3,7 @@
 VERSION = 2025
 PATCHLEVEL = 07
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION = -rc2
 NAME =
 
 # *DOCUMENTATION*
@@ -2448,7 +2448,8 @@ DOC_TARGETS := xmldocs latexdocs pdfdocs htmldocs epubdocs cleandocs \
 	       linkcheckdocs dochelp refcheckdocs texinfodocs infodocs
 PHONY += $(DOC_TARGETS)
 $(DOC_TARGETS): scripts_basic FORCE
-	$(Q)$(MAKE) $(build)=doc $@
+	$(Q)PYTHONPATH=$(srctree)/test/py/tests:$(srctree)/test/py \
+	$(MAKE) $(build)=doc $@
 
 PHONY += checkstack ubootrelease ubootversion
 
