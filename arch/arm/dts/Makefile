@@ -248,6 +248,7 @@ dtb-$(CONFIG_ARCH_ZYNQ) += \
 	zynq-zybo.dtb \
 	zynq-zybo-z7.dtb \
 	zynq-ax7021.dtb \
+	zynq-mt7021.dtb \
 	zynq-tl7z.dtb
 
 dtb-$(CONFIG_ARCH_ZYNQMP) += \
