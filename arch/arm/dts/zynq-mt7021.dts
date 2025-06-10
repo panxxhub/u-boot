@@ -60,7 +60,7 @@
 };
 
 &qspi {
-	bootph-all;
+	// bootph-all;
 	status = "okay";
 };
 
@@ -69,10 +69,9 @@
 	status = "okay";
 };
 
-// &sdhci1 {
-// 	bootph-all;
-// 	status = "okay";
-// };
+&sdhci1 {
+	status = "okay";
+};
 
 &uart1 {
 	bootph-all;
