@@ -486,7 +486,7 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 
 #ifdef CONFIG_ARCH_NPCM8XX
 	if (phydev->interface == PHY_INTERFACE_MODE_SGMII) {
-		unsigned int start;
+		ulong start;
 
 		/* Indirect access to VR_MII_MMD registers */
 		writew((VR_MII_MMD >> 9), PCS_BA + PCS_IND_AC);
@@ -532,7 +532,7 @@ int designware_eth_init(struct dw_eth_dev *priv, u8 *enetaddr)
 {
 	struct eth_mac_regs *mac_p = priv->mac_regs_p;
 	struct eth_dma_regs *dma_p = priv->dma_regs_p;
-	unsigned int start;
+	ulong start;
 	int ret;
 
 	writel(readl(&dma_p->busmode) | DMAMAC_SRST, &dma_p->busmode);
@@ -716,7 +716,7 @@ static int _dw_free_pkt(struct dw_eth_dev *priv)
 	ulong desc_start = (ulong)desc_p;
 	ulong desc_end = desc_start +
 		roundup(sizeof(*desc_p), ARCH_DMA_MINALIGN);
-	ulong data_start = desc_p->dmamac_addr;
+	ulong data_start = dev_bus_to_phys(priv->dev, desc_p->dmamac_addr);
 	ulong data_end = data_start + roundup(CFG_ETH_BUFSIZE, ARCH_DMA_MINALIGN);
 
 	/* Invalidate the descriptor buffer data */
